@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+  <script type="text/javascript" src="./../assets/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="./popup.js"></script>
+  <style type="text/css">
+    #mainPopup {
+      padding: 10px;
+      height: 200px;
+      width: 350px;
+      font-family: Helvetica, Ubuntu, Arial, sans-serif;
+    }
+    h1 {
+      font-size: 2em;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+    }
+    .btn-oauth {
+      width: 250px;
+      height: 40px;
+      border-radius: 10px;
+      color: white;
+      background: #3367d6;
+    }
+    .btn-oauth:hover,
+    .btn-oauth:active {
+      background: #3b79ff;
+    }
+    .header {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<div id="mainPopup">
+  <br />
+  <h1 class="header">Discord OAuth</h1>
+  <br />
+  <div class="button-container">
+    <button class="btn-oauth">OAuth</button>
+  </div>
+</div>

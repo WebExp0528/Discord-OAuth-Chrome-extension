@@ -1,0 +1,37 @@
+{
+  "name": "Discord OAuth",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Discord OAuth Chrome extension",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "page": "background/index.html",
+    "persistent": true
+  },
+  "options_page": "options/index.html",
+  "browser_action": {
+    "default_icon": "assets/icons/icon19.png",
+    "default_title": "Discord OAuth",
+    "default_popup": "popup/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*"],
+      "css": ["content/content.css"]
+    },
+    {
+      "matches": ["https://*/*"],
+      "js": ["content/index.js"]
+    }
+  ],
+  "permissions": ["tabs", "https://discord.com/api/*"],
+
+  "web_accessible_resources": ["assets/*.*"],
+
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';"
+}
