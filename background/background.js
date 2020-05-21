@@ -14,15 +14,21 @@ var g_tokens;
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     var url = changeInfo.url;
 
-    if (url && url.includes(REDIRECT_URI + "/?code")) {
-        var params = getParams(url);
-        g_authorizationCode = params.code;
+    // if (url && url.includes(REDIRECT_URI + "/?code")) {
+    //     var params = getParams(url);
+    //     g_authorizationCode = params.code;
 
-        //Get tokens from authorization code
-        getTokensFromCode(g_authorizationCode, "authorization_code").then((token) => {
-            g_tokens = token;
-            chrome.tabs.remove(tabId);
-        });
+    //     //Get tokens from authorization code
+    //     getTokensFromCode(g_authorizationCode, "authorization_code").then((token) => {
+    //         g_tokens = token;
+    //         chrome.tabs.remove(tabId);
+    //     });
+    // }
+
+    if (url && url.includes(REDIRECT_URI + "/#token_type")) {
+        var params = getParams(url.replace("#", "?"));
+        g_tokens = params;
+        chrome.tabs.remove(tabId);
     }
 });
 
@@ -33,37 +39,77 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     switch (request.type) {
         case "CLICKED_OAUTH_BTN": {
             // Open oauth tab
+
+            //Authorization code grant
+            // openNewTab(
+            //     "https://discord.com/oauth2/authorize?client_id=" +
+            //         CLIENT_ID +
+            //         "&redirect_uri=" +
+            //         encodeURIComponent(REDIRECT_URI) +
+            //         "&response_type=code&scope=identify"
+            // );
+
+            //Implicit Grant
             openNewTab(
                 "https://discord.com/oauth2/authorize?client_id=" +
                     CLIENT_ID +
                     "&redirect_uri=" +
                     encodeURIComponent(REDIRECT_URI) +
-                    "&response_type=code&scope=identify"
+                    "&response_type=token&scope=identify"
             );
             sendResponse(true);
             break;
         }
         case "CHECK_AUTH": {
-            if (g_tokens && g_tokens.refresh_token) {
-                // refresh tokens
-                getAccessToken(g_tokens.refresh_token)
-                    .then((token) => {
-                        g_tokens = token;
-
-                        //Userinfo from discord API
-                        apiCall(CURRENT_USER_API, "GET", g_tokens)
-                            .then(function (data) {
-                                sendResponse(data);
-                            })
-                            .catch(function (err) {
-                                console.log("~~~~~~~~~ error in getting userinfo", err);
-                                sendResponse(false);
-                            });
+            if (g_tokens && g_tokens.access_token) {
+                apiCall(CURRENT_USER_API, "GET", g_tokens)
+                    .then(function (data) {
+                        sendResponse(data);
                     })
-                    .catch((err) => {
-                        console.log("~~~~~~~~~~~~ error in refreshing token ", err);
-                        sendResponse(false);
+                    .catch(function (err) {
+                        console.log("~~~~~~~~~ error in getting userinfo", err);
+                        if (g_tokens.refresh_token) {
+                            getAccessToken(g_tokens.refresh_token)
+                                .then((token) => {
+                                    g_tokens = token;
+
+                                    //Userinfo from discord API
+                                    apiCall(CURRENT_USER_API, "GET", g_tokens)
+                                        .then(function (data) {
+                                            sendResponse(data);
+                                        })
+                                        .catch(function (err) {
+                                            console.log("~~~~~~~~~ error in getting userinfo", err);
+                                            sendResponse(false);
+                                        });
+                                })
+                                .catch((err) => {
+                                    console.log("~~~~~~~~~~~~ error in refreshing token ", err);
+                                    sendResponse(false);
+                                });
+                        } else {
+                            sendResponse(false);
+                        }
                     });
+                // // refresh tokens
+                // getAccessToken(g_tokens.refresh_token)
+                //     .then((token) => {
+                //         g_tokens = token;
+
+                //         //Userinfo from discord API
+                //         apiCall(CURRENT_USER_API, "GET", g_tokens)
+                //             .then(function (data) {
+                //                 sendResponse(data);
+                //             })
+                //             .catch(function (err) {
+                //                 console.log("~~~~~~~~~ error in getting userinfo", err);
+                //                 sendResponse(false);
+                //             });
+                //     })
+                //     .catch((err) => {
+                //         console.log("~~~~~~~~~~~~ error in refreshing token ", err);
+                //         sendResponse(false);
+                //     });
             } else {
                 sendResponse(false);
             }
